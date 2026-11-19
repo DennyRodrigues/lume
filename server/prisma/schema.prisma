@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ESTUDANTE
+  COORDENADOR
+}
+
+enum Status {
+  EM_ANALISE
+  APROVADA
+  REJEITADA
+}
+
+model Activity {
+  id String @id @default(cuid())
+  studentId String
+  title String
+  institution String
+  performedAt DateTime
+  modalityId String
+  declaredHours Float
+  certificatePath String
+  status Status @default(EM_ANALISE)
+  aiReport String?
+  aiAnalyzedAt DateTime?
+  approvedHours Float?
+  justification String?
+  reviewedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([studentId, createdAt])
+  @@index([status, createdAt])
+}

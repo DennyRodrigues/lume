@@ -1,0 +1,17 @@
+import express from "express";
+import cors from "cors";
+import { submissionRouter } from "./modules/submissao";
+import { evaluationRouter } from "./modules/avaliacao";
+import { MODALITIES, REQUIRED_HOURS } from "./modules/carga-horaria";
+const app = express();
+app.use(cors({ origin: process.env.WEB_ORIGIN || "http://localhost:5173" }));
+app.use(express.json({ limit: "1mb" }));
+app.use("/api", (_req, res, next) => process.env.DEMO_AUTH === "true" ? next() : res.status(503).json({ error: "Autenticação institucional ainda não configurada." }));
+app.get("/api/health", (_req, res) => res.json({ ok: true }));
+app.get("/api/rules", (_req, res) => res.json({ requiredHours: REQUIRED_HOURS, modalities: MODALITIES, resolution: "Resolução nº 03/2017 — Anexo A (vigência a confirmar com a coordenação)." }));
+app.use("/api/activities", submissionRouter);
+app.use("/api/reviews", evaluationRouter);
+app.use(express.static("web/dist"));
+app.get("*", (_req, res) => res.sendFile("index.html", { root: "web/dist" }));
+app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => { console.error(error); res.status(500).json({ error: "Erro interno ao processar a solicitação." }); });
+app.listen(Number(process.env.PORT || 3000), "0.0.0.0", () => console.log(`LUME API em :${process.env.PORT || 3000}`));
